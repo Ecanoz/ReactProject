@@ -1,121 +1,112 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
+import React, {Component} from 'react';
+import {View, Image, Text} from 'react-native';
+import SyncStorage from "sync-storage";
+import Router from "./src/pages/Router";
+import {mowColorFunction} from "./src/values/Colors/MowColors";
+import {heightPercentageToDP as hp} from "react-native-responsive-screen";
+import {fontFamily} from "./src/values/Styles/MowStyles";
+import {mowStrings} from "./src/values/Strings/MowStrings";
 
- import {Component} from 'react';
- import * as React from 'react';
- import type {Node} from 'react';
- import {SafeAreaView, ScrollView, PanResponder, StatusBar, StyleSheet, Text, Animated, useColorScheme, Button, Alert, View,} from 'react-native';
- import {Colors, DebugInstructions, Header, LearnMoreLinks, ReloadInstructions,} from 'react-native/Libraries/NewAppScreen';
- import Deneme from './src/deneme';
- // import Gecikmeli from './src/Gecikmeli';
- // import SameRep from './src/SameRep';
- // import Apidegis from './src/Apidegis';
- // import Tutcek from './src/Tutcek';
- import Routes from './src/Routes';
- 
- 
- 
- 
- const Section = ({children, title}): Node => {
-   const isDarkMode = useColorScheme() === 'dark';
-   return (
-     <View style={styles.sectionContainer}>
-       <Deneme />
-     </View>
-   );
- };
- 
- class Hebele extends Component {
-   constructor(props) {
-     super(props);
-   }
- 
-   componentDidMount() {
-     setTimeout(() => {
-       // Alert.alert('I am appearing...', 'After 1 seconds!');
-       <View>
-         <Text>
-           Hübbbüleğğ
-         </Text>
-       </View>
-     }, 1000);
-   }
- 
-   render() {
-     return (
-       <View style={{justifyContent: 'center', alignItems: 'center'}}>
-         {/* <Text style={{color: 'black'}}>Alert will appear after 1 seconds</Text> */}
-         <Button title="1 Saniye bekle" onPress={this.componentDidMount} />
-       </View>
-     );
-   }
- }
- 
- 
- // class MainActivity extends Component {
- 
- //    ShowAlertWithDelay = () => {
- 
- //       setTimeout(function () {
- //          //Put All Your Code Here, Which You Want To Execute After Some Delay Time.
- //         componentDidMount()
- //         //<Text>Hebele</Text>
-         
- //       }, 1000);
- //    }
- //    render() {
- //       return (
- //          <View style={styles.MainContainer}>
- //             <Button title="1 Saniye bekle" onPress={this.ShowAlertWithDelay} />
- //          </View>
- //       );
- //    }
- // }
- 
- 
- const App: () => Node = () => {
-   const isDarkMode = useColorScheme() === 'dark';
- 
-   const backgroundStyle = {
-     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-   };
- 
-   return (
-     <SafeAreaView style={backgroundStyle}>
-       {/* <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} /> */}
-       <ScrollView>
-         <Header />
-         {/* <SideMenu/> */}
-         <View>
-           <Routes/>
-         </View>
-       </ScrollView>
-     </SafeAreaView>
-   );
- };
- 
- const styles = StyleSheet.create({
-   sectionContainer: {
-     marginTop: 32,
-     paddingHorizontal: 24,
-   },
-   sectionTitle: {
-     fontSize: 24,
-     fontWeight: '600',
-   },
-   sectionDescription: {
-     marginTop: 8,
-     fontSize: 18,
-     fontWeight: '400',
-   },
-   highlight: {
-     fontWeight: '700',
-   },
- });
- 
- export default App;
+let _self;
+
+export default class App extends Component {
+
+    constructor(props){
+        super(props);
+        _self = this;
+        this.state = {
+            isReady: false,
+        }
+    }
+
+    async componentWillMount() {
+
+        console.disableYellowBox = true;
+
+        // to init local storage data, for retrieving data when entered the app
+        const data = await SyncStorage.init();
+
+        // to set theme color according to the user selection
+        let color = SyncStorage.get("color");
+        mowColorFunction(color);
+
+        // to set selected language from user
+        let lang = SyncStorage.get("language");
+
+        if (!lang) {
+
+            mowStrings.setLanguage("en");
+        }
+        else {
+            // to update selected language
+            mowStrings.setLanguage(lang);
+        }
+
+        try {
+            // for showing custom splash screen
+            window.setTimeout(function () {
+
+                _self.setState({
+                    isReady: true,
+                })
+            }, 500)
+
+        } catch (error) {
+            // console.log('App.js error: ', error);
+        }
+
+    }
+
+    render() {
+
+        return (
+
+            this.state.isReady !== true ?
+
+                // splash ui here
+                <View
+                    style={{flex: 1, width: "100%", height: "100%", alignItems: "center", justifyContent: "center"}}>
+
+                    <Image
+                        style={{flex: 1}}
+                        resizeMode={"contain"}
+                        source={require("./src/assets/image/mowega_splash.jpg")}/>
+
+                    <View
+                        style={{position: "absolute", width: "100%", height: hp(11), alignItems: "center", justifyContent: "center"}}>
+
+                        <View
+                            style={{position: "absolute",  opacity: 0.7, backgroundColor: "#090909", width: "100%", height: hp(11)}}/>
+
+                        <Image
+                            style={{width: "80%", height: hp(4)}}
+                            resizeMode={"contain"}
+                            source={require("./src/assets/logo/logo_with_text.png")}/>
+
+                        <Text
+                            style={{
+                                color: "white",
+                                fontSize: hp(2),
+                                fontWeight: "normal",
+                                fontFamily: fontFamily.regular
+                            }}>
+
+                            Shopping
+
+                        </Text>
+
+                    </View>
+
+
+                </View>
+
+                :
+
+                // after timeout, go to router
+                <Router/>
+
+        );
+    }
+
+}
+
